@@ -7,14 +7,15 @@ import com.example.compiler.grammer.Statement;
 import com.example.compiler.lexer.Token;
 import com.example.compiler.lexer.TokenGenerator;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        InputStream ins = Main.class.getClassLoader().getResourceAsStream("input.txt");
-        List<Token> tokenList = TokenGenerator.generateToken(ins);
+        FileInputStream fileInputStream = new FileInputStream("src/main/resources/input.txt");
+        List<Token> tokenList = TokenGenerator.generateToken(fileInputStream);
         Parser parser = new Parser(tokenList);
         //解析出所有函数
         Map<String, Statement.FuncStatement> funcStatementMap = parser.funcs();

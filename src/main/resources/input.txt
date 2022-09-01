@@ -4,6 +4,7 @@ a
 void main()
 {
  string s= "hello";
+ test1();
 }
 /*
 
