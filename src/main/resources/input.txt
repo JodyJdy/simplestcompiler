@@ -1,0 +1,107 @@
+/*
+a
+*/
+void main()
+{
+ string s= "hello";
+}
+/*
+
+这是一个注释
+
+*/
+void test1(){
+  string s = "hello";
+  print(s);
+  int[] arr = {3,5,2,1,4};
+  arr[1] = 10;
+  print("快速排序前");
+  print(arr);
+  quickSort(arr,0,4);
+  print("快速排序后");
+  print(arr);
+  string[] str = {"aa","bb","cc","dd"};
+  print(len(arr));
+  print(str);
+  print(getArray());
+  //阶乘函数
+  print("阶乘：");
+  print(f(10));
+  int[] arr2 = {3,5,2,1,4};
+  bubleSort(arr2);
+  print("测试变量作用域");
+  domain(1);
+}
+//测试变量作用域
+void domain(int x){
+   print(x);
+   {
+     int x = 2;
+     print(x);
+     {
+       int x = 3;
+       print(x);
+     }
+     print(x);
+   }
+   print(x);
+}
+// 阶乘
+int f(int n){
+  if(n == 1){
+     return 1;
+  }
+  return n * f(n-1);
+}
+//冒泡排序
+void bubleSort(int[] arr){
+   int length = len(arr);
+   int i,j,t;
+   print("冒泡排序前");
+   print(arr);
+   for(i=0;i<length-1;i=i+1){
+      for(j=i+1;j<length;j=j+1){
+         if(arr[i] > arr[j]){
+            t = arr[j];
+            arr[j] = arr[i];
+            arr[i] = t;
+         }
+      }
+   }
+   print("冒泡排序后");
+   print(arr);
+}
+// 快速排序
+void quickSort(int[] arr,int low,int high){
+        int i,j,temp,t;
+        if(low>high){
+            return;
+        }
+        i=low;
+        j=high;
+        temp = arr[low];
+        while (i<j) {
+            while (temp<=arr[j]&&i<j) {
+                j=j-1;
+            }
+            while (temp>=arr[i]&&i<j) {
+                i=i+1;
+            }
+            if (i<j) {
+                t = arr[j];
+                arr[j] = arr[i];
+                arr[i] = t;
+            }
+        }
+        arr[low] = arr[i];
+        arr[i] = temp;
+        quickSort(arr, low, j-1);
+        quickSort(arr, j+1, high);
+
+}
+//测试返回值为数组
+int[] getArray(){
+  return {1,2,3,4,5};
+}
+
+
