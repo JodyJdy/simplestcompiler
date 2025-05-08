@@ -20,3 +20,4 @@ string sarray = {"a","b","c"};
 ## 语法
 ### 支持语法
 语句以;结尾 支持while,for,dowhile
+参见input.txt
