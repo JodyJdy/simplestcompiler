@@ -2,7 +2,7 @@ package com.example.compiler.grammer;
 
 import java.util.List;
 
- abstract class Expr {
+ public abstract class Expr {
     static class ArgExpr extends Expr {
         String id;
         int type;
@@ -13,6 +13,10 @@ import java.util.List;
     }
     static class ArrayInit extends Expr{
         List<Expr> exprs;
+        /**
+         * 定义时数组的类型
+         */
+        int type;
         ArrayInit(List<Expr> exprs) {
            this.exprs = exprs;
         }

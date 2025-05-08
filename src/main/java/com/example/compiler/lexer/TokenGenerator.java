@@ -39,7 +39,7 @@ public class TokenGenerator {
     }
 
 
-    private static List<Token> generateToken(String input) {
+    public static List<Token> generateToken(String input) {
         int lineNum = 1;
         List<Token> tokens = new ArrayList<>();
         int i = 0;

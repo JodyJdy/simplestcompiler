@@ -1,5 +1,6 @@
 package com.example.compiler.grammer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.compiler.grammer.Expr.*;
@@ -46,6 +47,9 @@ public abstract class Statement {
         BlockStatement(List<Statement> block){
             this.block = block;
         }
+        public static BlockStatement emptyBlock(){
+            return new BlockStatement(new ArrayList<>());
+        }
     }
     static class DoWhileStatement extends Statement {
         BlockStatement block;
@@ -83,6 +87,9 @@ public abstract class Statement {
             this.funcName = funcName;
             this.args = args;
             this.block = block;
+        }
+        public static FuncStatement emptyFunc(){
+            return new FuncStatement(VarType.VOID, "main", new ArrayList<>(), BlockStatement.emptyBlock());
         }
     }
     static class IfStatement extends Statement {

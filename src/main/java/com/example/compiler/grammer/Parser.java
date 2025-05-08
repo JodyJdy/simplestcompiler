@@ -19,6 +19,10 @@ public class Parser {
     public Parser(List<Token> tokens){
         this.tokens = tokens;
     }
+
+    private boolean isEnd(){
+        return cur>=tokens.size();
+    }
     private void next(int n){
         cur+=n;
     }
@@ -51,7 +55,7 @@ public class Parser {
             next();
             return;
         }
-        throw new RuntimeException("expect: '"+ v +"' find :'" + currToken().getToken()+"'  at line :"+ currToken().getLine());
+        throw new RuntimeException("expect '"+ v +"' find '" + currToken().getToken()+"'  at line :"+ currToken().getLine());
     }
     private Token currToken(){
         if(cur >= tokens.size()){
@@ -66,7 +70,7 @@ public class Parser {
         return tokens.get(cur+1);
     }
 
-    public Map<String,FuncStatement> funcs() throws Exception {
+    public Map<String,FuncStatement> funcs() {
         Map<String,FuncStatement> funcStatements = new HashMap<>();
         FuncStatement func = funcStatement();
         funcStatements.put(func.funcName,func);
@@ -117,7 +121,7 @@ public class Parser {
         }
         return new TypeAndSize(type,size);
     }
-    private FuncStatement funcStatement() throws Exception {
+    private FuncStatement funcStatement()  {
       int returnType = getVarType().type;
       String funcName = currToken().getToken();
       next();
@@ -136,7 +140,7 @@ public class Parser {
       BlockStatement statements = block();
       return new FuncStatement(returnType,funcName,args,statements);
     }
-    private BlockStatement block() throws Exception {
+    private BlockStatement block(){
         match("{");
         List<Statement> statements = new ArrayList<>();
         while (true){
@@ -149,7 +153,7 @@ public class Parser {
         match("}");
         return new BlockStatement(statements);
     }
-    private Statement statement() throws Exception {
+    private Statement statement() {
         String val = currToken().getToken();
         for(;;) {
             switch (val) {
@@ -174,7 +178,7 @@ public class Parser {
         }
     }
 
-    private Statement forStat() throws Exception {
+    private Statement forStat() {
         match("for");
         match("(");
         Statement first = null; Expr second = null;Statement third = null;
@@ -193,7 +197,7 @@ public class Parser {
         BlockStatement block = block();
         return new ForStatement(first,second,third,block);
     }
-    private Statement ifStat() throws Exception {
+    private Statement ifStat() {
         match("if");
         match("(");
         Expr ifCond = expr();
@@ -215,7 +219,7 @@ public class Parser {
         }
         return new IfStatement(ifCond,ifBlock,elseIfConds,elseIfBlocks,elseBlock);
     }
-    private Statement doStat() throws Exception {
+    private Statement doStat() {
         match("do");
         BlockStatement block = block();
         checkAndNext("while");
@@ -224,7 +228,7 @@ public class Parser {
         match(")");
         return new DoWhileStatement(block,cond);
     }
-    private Statement whileStat() throws Exception {
+    private Statement whileStat() {
         match("while");
         match("(");
         Expr cond = expr();
@@ -232,7 +236,7 @@ public class Parser {
         BlockStatement block = block();
         return new WhileStatement(cond,block);
     }
-    private Statement defineStat() throws Exception {
+    private Statement defineStat() {
         TypeAndSize typeAndSize = getVarType();
         List<DefineSingleStatement> defineSingleStatements = new ArrayList<>();
         DefineStatement defineStatement = new DefineStatement(defineSingleStatements);
@@ -247,6 +251,7 @@ public class Parser {
                 expr = expr();
                 if (expr instanceof ArrayInit) {
                     typeAndSize.size = ((ArrayInit) expr).exprs.size();
+                    ((ArrayInit) expr).type = typeAndSize.type;
                 }
             }
             defineSingleStatements.add(new DefineSingleStatement(typeAndSize.type,id,typeAndSize.size,expr));
@@ -261,7 +266,7 @@ public class Parser {
         }
         return  defineStatement;
     }
-    private Statement assignStat() throws Exception {
+    private Statement assignStat()  {
         Expr left = expr();
         if(curTokenIs(";") && left instanceof FuncCallExpr){
             next();
@@ -271,7 +276,7 @@ public class Parser {
         Expr right = expr();
         return new AssignStatement(left,right);
     }
-    private List<Expr> exprList() throws Exception {
+    private List<Expr> exprList()  {
         List<Expr> exprs = new ArrayList<>();
         while(!curTokenIn(")","}")){
             exprs.add(expr());
@@ -283,10 +288,10 @@ public class Parser {
         }
         return exprs;
     }
-    private Expr expr() throws Exception {
+    private Expr expr() {
         return orExpr();
     }
-    private Expr orExpr() throws Exception {
+    private Expr orExpr()  {
         Expr left = andExpr();
         while(curTokenIs("||")){
             next();
@@ -294,7 +299,7 @@ public class Parser {
         }
         return left;
     }
-    private Expr andExpr() throws Exception {
+    private Expr andExpr() {
         Expr left = relExpr();
         while(curTokenIs("&&")){
             next();
@@ -302,7 +307,7 @@ public class Parser {
         }
         return left;
     }
-    private Expr relExpr() throws Exception {
+    private Expr relExpr() {
         Expr left = bitAnd();
         while(curTokenIn(">" ,">=","<","<=","==","!=")){
             String op = currToken().getToken();
@@ -311,7 +316,7 @@ public class Parser {
         }
         return left;
     }
-    private Expr bitAnd() throws Exception {
+    private Expr bitAnd()  {
         Expr left = bitOr();
         while(curTokenIs("&")){
             next();
@@ -319,7 +324,7 @@ public class Parser {
         }
         return left;
     }
-    private Expr bitOr() throws Exception {
+    private Expr bitOr(){
         Expr left = addSub();
         while(curTokenIs("|")){
             next();
@@ -327,7 +332,7 @@ public class Parser {
         }
         return left;
     }
-    private Expr addSub() throws Exception {
+    private Expr addSub() {
         Expr left = mulDivMod();
         while(curTokenIn("+","-")){
             String op = currToken().getToken();
@@ -336,7 +341,7 @@ public class Parser {
         }
         return left;
     }
-    private Expr mulDivMod() throws Exception {
+    private Expr mulDivMod()  {
         Expr left = single();
         while(curTokenIn("*","/","%")){
             String op = currToken().getToken();
@@ -345,7 +350,7 @@ public class Parser {
         }
         return left;
     }
-    private Expr single() throws Exception {
+    private Expr single() {
         if(currToken() instanceof Token.IdToken){
             String id = currToken().getToken();
             next();
@@ -378,6 +383,11 @@ public class Parser {
         //数组初始化 int[xx] x = {1,2,3,4,5}
         if(curTokenIs("{")){
             next();
+            //空数组
+            if (curTokenIs("}")) {
+                next();
+                return new ArrayInit(new ArrayList<>());
+            }
             List<Expr> exprs = exprList();
             next();
             return new ArrayInit(exprs);
@@ -390,6 +400,34 @@ public class Parser {
             match(")");
             return new NotExpr(expr);
         }
-        throw new Exception("error expr type, line :" + currToken().getLine() + " token: " + currToken().getToken());
+        System.err.println("错误的表达式类型, 行号 :" + currToken().getLine() + " token: " + currToken().getToken());
+        System.exit(1);
+        return null;
+    }
+
+    public CommandLine commandLine(){
+        String val = currToken().getToken();
+        for(;;) {
+            switch (val) {
+                case "for":return new CommandLine(forStat());
+                case "if": return new CommandLine(ifStat());
+                case "do": return new CommandLine(doStat());
+                case "while": return new CommandLine(whileStat());
+                case "int": case "string": return new CommandLine(defineStat());
+                case ";": next();continue;
+                default:
+                    Expr left = expr();
+                    if (isEnd()) {
+                        return new CommandLine(left);
+                    }
+                    if(curTokenIs(";") && left instanceof FuncCallExpr){
+                        next();
+                        return new CommandLine(new FuncCallStatement((FuncCallExpr)left));
+                    }
+                    match("=");
+                    Expr right = expr();
+                    return new CommandLine(new AssignStatement(left,right));
+            }
+        }
     }
 }

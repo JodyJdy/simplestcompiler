@@ -1,8 +1,6 @@
 package com.example.compiler.grammer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.example.compiler.grammer.Expr.*;
 import static com.example.compiler.grammer.Statement.*;
@@ -14,11 +12,8 @@ public class Executor {
     /**
      * all functions
      */
-    private static Map<String, FuncStatement> userFuncs = null;
+    private  static Map<String, FuncStatement> userFuncs = null;
 
-    public static void setUserFuncs(Map<String, FuncStatement> funcs) {
-        userFuncs = funcs;
-    }
     private final FuncStatement fs;
     private Env env;
     /**
@@ -53,17 +48,31 @@ public class Executor {
     }
 
 
+    /**
+     *启动时调用
+     */
+     public Executor(Map<String, Statement.FuncStatement> funcStatementMap) {
+        //设置所有的函数
+        Executor.userFuncs = funcStatementMap;
+        this.env = new Env();
+        //当前执行的函数
+        this.fs = funcStatementMap.get("main");
+        if (this.fs == null) {
+            throw new RuntimeException("No main func");
+        }
+    }
+
     public Executor(Env env, FuncStatement fs) {
         this.env = env;
         this.fs = fs;
     }
 
-    public LocalVar execute() throws Exception {
+    public LocalVar execute() {
         executeBlock(fs.block);
         return returnValue;
     }
 
-    private void executeStatement(Statement statement) throws Exception {
+    public void executeStatement(Statement statement) {
         String className = statement.getClass().getSimpleName();
         switch (className){
             case "DefineStatement": executeDefineStatement((DefineStatement) statement);break;
@@ -77,7 +86,7 @@ public class Executor {
             case "ContinueStatement": executeContinueStatement();break;
             case "ReturnStatement": executeReturnStatement((ReturnStatement) statement);break;
             case "BlockStatement": executeBlock(((BlockStatement)statement));break;
-            default:throw new Exception("statement type is not supported");
+            default:throw new RuntimeException("statement type is not supported");
         }
     }
 
@@ -104,7 +113,7 @@ public class Executor {
         env = env.last;
     }
 
-    private void executeBlock(BlockStatement blockStatement) throws Exception {
+    private void executeBlock(BlockStatement blockStatement) {
         enterBlock();
         for (Statement statement : blockStatement.block) {
             executeStatement(statement);
@@ -115,33 +124,33 @@ public class Executor {
         exitBlock();
     }
 
-    private void executeReturnStatement(ReturnStatement returnStatement) throws Exception {
+    private void executeReturnStatement(ReturnStatement returnStatement) {
         returned = true;
         if (returnStatement.expr != null) {
             returnValue = executeExpr(returnStatement.expr);
         }
     }
 
-    private void executeContinueStatement() throws Exception {
+    private void executeContinueStatement() {
         if (inCircle()) {
             continueLevel = circleLevel;
         } else {
-            throw new Exception("continue in an error position");
+            throw new RuntimeException("continue in an error position");
         }
     }
 
-    private void executeBreakStatement() throws Exception {
+    private void executeBreakStatement(){
         if (inCircle()) {
             breakLevel = circleLevel;
         } else {
-            throw new Exception("break in an error position");
+            throw new RuntimeException("break in an error position");
         }
     }
 
-    private void executeFuncCallStatement(FuncCallStatement funcCallStatement) throws Exception {
+    private void executeFuncCallStatement(FuncCallStatement funcCallStatement) {
         executeExpr(funcCallStatement.funcCallExpr);
     }
-    private void executeWhileStatement(WhileStatement whileStatement) throws Exception {
+    private void executeWhileStatement(WhileStatement whileStatement) {
         circleLevel++;
         Expr cond = whileStatement.condition;
         while (executeExpr(cond).i == TRUE) {
@@ -160,7 +169,7 @@ public class Executor {
         circleLevel--;
     }
 
-    private void executeDoStatement(DoWhileStatement doWhileStatement) throws Exception {
+    private void executeDoStatement(DoWhileStatement doWhileStatement) {
         Expr cond = doWhileStatement.cond;
         circleLevel++;
         do {
@@ -179,7 +188,7 @@ public class Executor {
         circleLevel--;
     }
 
-    private void executeForStatement(ForStatement forStatement) throws Exception {
+    private void executeForStatement(ForStatement forStatement) {
         circleLevel++;
         if (forStatement.statement != null) {
             executeStatement(forStatement.statement);
@@ -202,7 +211,7 @@ public class Executor {
         circleLevel--;
     }
 
-    private void executeIfStatement(IfStatement statement) throws Exception {
+    private void executeIfStatement(IfStatement statement) {
         if (executeExpr(statement.ifCond).i == TRUE) {
             executeBlock(statement.ifBlock);
             return;
@@ -218,7 +227,7 @@ public class Executor {
         }
     }
 
-    private void executeAssignStatement(AssignStatement assignStatement) throws Exception {
+    private void executeAssignStatement(AssignStatement assignStatement) {
 
         LocalVar var = executeExpr(assignStatement.right);
         Expr left = assignStatement.left;
@@ -238,7 +247,7 @@ public class Executor {
         }
     }
 
-    private void executeDefineStatement(DefineStatement defineStatement) throws Exception {
+    private void executeDefineStatement(DefineStatement defineStatement){
         for(DefineStatement.DefineSingleStatement defineSingleStatement : defineStatement.singleStatements) {
             LocalVar localVar;
             if (defineSingleStatement.right != null) {
@@ -253,7 +262,7 @@ public class Executor {
                 }
             }
             if (defineSingleStatement.type != localVar.type) {
-                throw new Exception("type is not same");
+                throw new RuntimeException("type is not same");
             }
             env.putNewVar(defineSingleStatement.id, localVar);
         }
@@ -274,13 +283,13 @@ public class Executor {
     private LocalVar executeIdExpr(IdExpr idExpr){
         return env.get(idExpr.id);
     }
-    private LocalVar executeCalExpr(CalExpr calExpr) throws Exception {
+    private LocalVar executeCalExpr(CalExpr calExpr){
         LocalVar localVar = new LocalVar();
         localVar.type = VarType.INT;
         LocalVar left = executeExpr(calExpr.left);
         LocalVar right = executeExpr(calExpr.right);
         if (left.type != VarType.INT || right.type != VarType.INT) {
-            throw new Exception("error operator num type");
+            throw new RuntimeException("error operator num type");
         }
         int result;
         switch (calExpr.op) {
@@ -290,24 +299,24 @@ public class Executor {
                 break;
             case "*": result = left.i * right.i;break;
             case "/":
-                if (right.i == 0) throw new Exception("0 is div");
+                if (right.i == 0) throw new RuntimeException("0 is div");
                 result = left.i / right.i;break;
             case "%": result = left.i % right.i;break;
             case "|": result = left.i | right.i;break;
             case "&": result = left.i & right.i;break;
             default:
-                throw new Exception("error operator");
+                throw new RuntimeException("error operator");
         }
         localVar.i = result;
         return localVar;
     }
-    private LocalVar executeRelExpr(RelExpr expr) throws Exception {
+    private LocalVar executeRelExpr(RelExpr expr) {
         LocalVar localVar = new LocalVar();
         localVar.type = VarType.INT;
         LocalVar left = executeExpr(expr.left);
         LocalVar right = executeExpr(expr.right);
         if (left.type != VarType.INT || right.type != VarType.INT) {
-            throw new Exception("error operator num type");
+            throw new RuntimeException("error operator num type");
         }
         boolean result;
         switch (expr.op) {
@@ -318,12 +327,12 @@ public class Executor {
             case "<=": result = left.i <= right.i;break;
             case "!=":result = left.i != right.i;break;
             default:
-                throw new Exception("error operator");
+                throw new RuntimeException("error operator");
         }
         localVar.i = result ? TRUE : FALSE;
         return localVar;
     }
-    private LocalVar executeNotExpr(NotExpr notExpr) throws Exception {
+    private LocalVar executeNotExpr(NotExpr notExpr) {
         LocalVar var = executeExpr(notExpr.expr);
         if(var.i == FALSE){
             var.i = TRUE;
@@ -332,29 +341,29 @@ public class Executor {
         }
         return var;
     }
-    private LocalVar executeBoolExpr(BoolExpr expr) throws Exception {
+    private LocalVar executeBoolExpr(BoolExpr expr) {
         LocalVar localVar = new LocalVar();
         localVar.type = VarType.INT;
         LocalVar left = executeExpr(expr.left);
         if (left.type != VarType.INT) {
-            throw new Exception("error operator num type");
+            throw new RuntimeException("error operator num type");
         }
         boolean result = left.i != FALSE;
         if (expr.op.equals("&&")) {
             LocalVar right = executeExpr(expr.right);
             if (right.type != VarType.INT) {
-                throw new Exception("error operator num type");
+                throw new RuntimeException("error operator num type");
             }
             result = result && right.i != FALSE;
         }
         localVar.i = result ? TRUE : FALSE;
         return localVar;
     }
-    private LocalVar executeArrayUse(ArrayUse expr) throws Exception {
+    private LocalVar executeArrayUse(ArrayUse expr) {
         LocalVar localVar = new LocalVar();
         LocalVar index = executeExpr(expr.index);
         if (index.type != VarType.INT) {
-            throw new Exception("error array index type");
+            throw new RuntimeException("error array index type");
         }
         String id = expr.arrayId;
         LocalVar array = env.get(id);
@@ -371,7 +380,7 @@ public class Executor {
         LocalVar localVar = new LocalVar();
         List<Expr> exprs = expr.exprs;
         //first expr's type means array's type
-        if (exprs.size() != 0) {
+        if (!exprs.isEmpty()) {
             if (exprs.get(0) instanceof IntExpr) {
                 localVar.type = VarType.INT_ARRAY;
                 int[] ints = new int[exprs.size()];
@@ -387,10 +396,18 @@ public class Executor {
                     localVar.strs = strs;
                 }
             }
+        } else{
+           //空数组
+           localVar.type = expr.type;
+           if(expr.type == VarType.INT_ARRAY){
+               localVar.ints = new int[0];
+           } else{
+               localVar.strs = new String[0];
+           }
         }
         return localVar;
     }
-    private LocalVar executeFuncCall(FuncCallExpr expr) throws Exception {
+    private LocalVar executeFuncCall(FuncCallExpr expr) {
         List<Expr> exprs = expr.args;
         List<LocalVar> actualVars = new ArrayList<>();
         for (Expr value : exprs) {
@@ -413,7 +430,7 @@ public class Executor {
     /**
      * 执行表达式返回 localVar对象
      */
-    private LocalVar executeExpr(Expr expr) throws Exception {
+    public LocalVar executeExpr(Expr expr){
         String name = expr.getClass().getSimpleName();
         switch (name){
             case "StringExpr":return executeStringExpr((StringExpr) expr);
@@ -426,15 +443,38 @@ public class Executor {
             case "ArrayUse": return executeArrayUse((ArrayUse)expr);
             case "ArrayInit":return executeArrayInit((ArrayInit)expr);
             case "FuncCallExpr":return executeFuncCall((FuncCallExpr)expr);
-            default:throw new Exception("expr can't be recognized");
+            default:throw new RuntimeException("expr can't be recognized");
         }
     }
 
-    static class LocalVar {
+    public static class LocalVar {
         int type;
         int i;
         String str;
         int[] ints;
         String[] strs;
+
+        @Override
+        public String toString() {
+            switch (type) {
+                case VarType.INT:
+                    return String.valueOf(i);
+                case VarType.INT_ARRAY: return Arrays.toString(ints);
+                case VarType.STRING: return str;
+                case VarType.STRING_ARRAY:
+                    return Arrays.toString(strs);
+                default:
+                    return "void";
+            }
+        }
+    }
+
+    /**
+     *执行
+     */
+
+    public static LocalVar execute(Map<String, Statement.FuncStatement> funcStatementMap){
+        Executor executor = new Executor(funcStatementMap);
+        return executor.execute();
     }
 }
