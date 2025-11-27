@@ -3,49 +3,49 @@ a
 */
 void main()
 {
- string s= "hello";
  test1();
 }
 /*
-
 这是一个注释
-
 */
 void test1(){
+  print("---------------测试字符串打印----------------------------------");
   string s = "hello";
   print(s);
+
+  print("-----------------测试数组定义和快排-----------------------");
   int[] arr = {3,5,2,1,4};
   arr[1] = 10;
-  print("快速排序前");
-  print(arr);
+  print("快速排序数据:",arr);
   quickSort(arr,0,4);
-  print("快速排序后");
-  print(arr);
+  print("快速排序后:",arr);
+  print("-------------------测试字符串数组--------------------");
   string[] str = {"aa","bb","cc","dd"};
-  print(len(arr));
+  print("字符串数组长度:",len(str));
   print(str);
+  print("---------------------测试函数返回内容为数组--------------");
   print(getArray());
-  //阶乘函数
-  print("阶乘：");
-  print(f(10));
+  print("----------------------测试函数递归调用------------");
+  print("10的阶乘:",f(10));
+  print("----------------------测试冒泡排序-------------------");
   int[] arr2 = {3,5,2,1,4};
-  bubleSort(arr2);
-  print("测试变量作用域");
+  bubbleSort(arr2);
+  print("----------------测试变量作用域 --------------------");
   domain(1);
 }
 //测试变量作用域
 void domain(int x){
-   print(x);
+   print("x=",x);
    {
      int x = 2;
-     print(x);
+     print("x=",x);
      {
        int x = 3;
-       print(x);
+       print("x=",x);
      }
-     print(x);
+     print("x=",x);
    }
-   print(x);
+   print("x=",x);
 }
 // 阶乘
 int f(int n){
@@ -55,7 +55,7 @@ int f(int n){
   return n * f(n-1);
 }
 //冒泡排序
-void bubleSort(int[] arr){
+void bubbleSort(int[] arr){
    int length = len(arr);
    int i,j,t;
    print("冒泡排序前");
