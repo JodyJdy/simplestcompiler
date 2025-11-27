@@ -268,8 +268,8 @@ public class Parser {
     }
     private Statement assignStat()  {
         Expr left = expr();
-        if(curTokenIs(";") && left instanceof FuncCallExpr){
-            next();
+        if (left instanceof FuncCallExpr) {
+            match(";");
             return new FuncCallStatement((FuncCallExpr)left);
         }
         match("=");
